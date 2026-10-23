@@ -1,0 +1,21 @@
+# Deploy the backend and Postgres in your own Render account.
+# Estimated charges depend on the plan chosen during Blueprint creation.
+databases:
+  - name: sentinelguard-postgres
+    databaseName: sentinelguard
+    user: sentinelguard
+    plan: basic
+services:
+  - type: web
+    name: sentinelguard-api
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sentinelguard-postgres
+          property: connectionString
+      - key: SENTINELGUARD_API_KEY
+        sync: false
