@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sentinelguard
+      POSTGRES_USER: sentinelguard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinelguard"]
+      interval: 5s
+      retries: 10
+  api:
+    build: .
+    environment:
+      SENTINELGUARD_API_KEY: ${SENTINELGUARD_API_KEY:?Set SENTINELGUARD_API_KEY in .env}
+      DATABASE_URL: postgresql+psycopg://sentinelguard:${POSTGRES_PASSWORD}@db:5432/sentinelguard
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  dashboard:
+    build: .
+    command: ["streamlit", "run", "frontend/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      - api
+volumes:
+  pgdata:
