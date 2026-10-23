@@ -6,7 +6,7 @@ import streamlit as st
 st.set_page_config(page_title='SentinelGuard SOC',page_icon='🛡️',layout='wide')
 st.title('🛡️ SentinelGuard | Security Operations Center')
 st.caption('Synthetic telemetry only · Evidence-first detection · Analyst-controlled triage')
-api=st.sidebar.text_input('API URL',value=os.getenv('API_URL','http://localhost:8000'))
+api=st.sidebar.text_input('API URL',value=os.getenv('API_URL','https://sentinelguard-api-8m15.onrender.com'))
 key=st.sidebar.text_input('API key',value=os.getenv('SENTINELGUARD_API_KEY',''),type='password')
 
 def request(method,path,**kwargs):
