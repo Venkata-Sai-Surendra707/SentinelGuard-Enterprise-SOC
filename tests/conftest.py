@@ -9,6 +9,7 @@ from backend.main import app, db_session
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setenv('SENTINELGUARD_API_KEY','test-secret')
+    monkeypatch.setattr('backend.main.initialize', lambda: None)
     engine=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
     Base.metadata.create_all(engine)
     local=sessionmaker(bind=engine,expire_on_commit=False)
@@ -19,3 +20,4 @@ def client(monkeypatch):
         yield c
     app.dependency_overrides.clear()
     engine.dispose()
+

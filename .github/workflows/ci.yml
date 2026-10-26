@@ -5,6 +5,20 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sentinelguard_test
+          POSTGRES_USER: sentinelguard
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sentinelguard -d sentinelguard_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://sentinelguard:ci-only-password@localhost:5432/sentinelguard_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -12,3 +26,8 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements.txt
       - run: python -m pytest -q
+      - run: docker compose config --quiet
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          SENTINELGUARD_API_KEY: ci-only-key
+      - run: docker build -t sentinelguard:ci .
