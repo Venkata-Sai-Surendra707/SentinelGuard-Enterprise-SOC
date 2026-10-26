@@ -1,17 +1,16 @@
-# Deploy the backend and Postgres in your own Render account.
-# Estimated charges depend on the plan chosen during Blueprint creation.
+# Backend and managed Postgres; host frontend/app.py separately on Streamlit.
 databases:
   - name: sentinelguard-postgres
     databaseName: sentinelguard
     user: sentinelguard
-    plan: basic
+    plan: basic-256mb
 services:
   - type: web
     name: sentinelguard-api
     runtime: docker
     plan: starter
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /health
+    healthCheckPath: /ready
     envVars:
       - key: DATABASE_URL
         fromDatabase:

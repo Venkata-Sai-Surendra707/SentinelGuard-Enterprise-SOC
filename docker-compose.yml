@@ -15,7 +15,15 @@ services:
     build: .
     environment:
       SENTINELGUARD_API_KEY: ${SENTINELGUARD_API_KEY:?Set SENTINELGUARD_API_KEY in .env}
-      DATABASE_URL: postgresql+psycopg://sentinelguard:${POSTGRES_PASSWORD}@db:5432/sentinelguard
+      POSTGRES_HOST: db
+      POSTGRES_DB: sentinelguard
+      POSTGRES_USER: sentinelguard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -29,6 +37,8 @@ services:
     ports:
       - "127.0.0.1:8501:8501"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 volumes:
   pgdata:
+

@@ -2,7 +2,8 @@ import os
 from collections import Counter
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Header, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from .db import initialize, session_scope
 from .models import SecurityEvent, Incident, utcnow
@@ -32,6 +33,14 @@ def db_session():
 @app.get('/health')
 def health():
     return {'status':'ok','service':'sentinelguard'}
+
+@app.get('/ready')
+def ready(db: Session = Depends(db_session)):
+    try:
+        db.execute(text('SELECT 1'))
+    except SQLAlchemyError:
+        raise HTTPException(503, 'Database unavailable') from None
+    return {'status': 'ready'}
 
 @app.get('/rules',dependencies=[Depends(guard)])
 def rules():
@@ -99,3 +108,4 @@ def metrics(db:Session=Depends(db_session)):
             'incidents':len(items),'by_severity':dict(Counter(i.severity for i in items)),
             'by_status':dict(Counter(i.status for i in items)),
             'by_rule':dict(Counter(i.rule_id for i in items))}
+
